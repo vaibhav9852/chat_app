@@ -1,6 +1,5 @@
 
 
-
 let currentUserId = null;
 let selectedUserId = null;
 let currentUserName = null;
@@ -67,7 +66,7 @@ singupButton.onclick = async (event) =>{
    }else if(password.trim().length < 6){
     passwordErr = 'password minimum length should be 6'
   }else if(!paaswordRegex.test(password)){
-    passwordErr = 'Passwords must contain:lower letter,upper letter,1 numeric character,1 special character'
+    passwordErr = 'Passwords must contain:lower letter,upper letter,numeric character,special character'
 
   }
      if(nameErr){
@@ -203,10 +202,15 @@ async function loadUsers(){
    if(response.ok){
   for (const userId in users) {
       if (users[userId].uid != currentUserId) {
+        
           const li = document.createElement("li");
-          li.textContent = users[userId].uname;
+          const img = document.createElement("img")
+          img.src=`https://www.svgrepo.com/show/43426/profile.svg`
+          img.alt = 'Img'
+          li.appendChild(img)
           li.classList.add("user");
-         // let name = users[userId].uname
+          li.appendChild(document.createTextNode(`${users[userId].uname}`));
+         selectedUserName =  users[userId].uname;
           li.onclick = () => selectUser(users[userId].uid); // update userId to users[userId].uid
          // console.log('new type id',userId)
           userList.appendChild(li);
@@ -214,7 +218,7 @@ async function loadUsers(){
           console.log('if block not match',users[userId].uid , currentUserId)
       }else{
         console.log('else block not match',users[userId].uid != currentUserId)
-        console.log('else block not match',users[userId].uid , currentUserId)
+        currentUserName = users[userId].uname;
       }
   }
 }else{
@@ -243,14 +247,14 @@ async function loadMessages() {
   for (const key in messages) {
       const message = messages[key];
       console.log('during show msg---',currentUserId, selectedUserId, message.participants.includes(currentUserId),message.participants.includes(selectedUserId))
-      if (message.participants.includes(currentUserId) && message.participants.includes(selectedUserId)) {
+      if (message.participants.includes(`${currentUserId}-${currentUserName}`) && message.participants.includes(`${selectedUserId}-${selectedUserName}`)) {
           const messageElement = document.createElement("div");
           const senderElement = document.createElement("div");
           messageElement.setAttribute('class','user-message')
           senderElement.setAttribute('class','sender-name')
           // let sender = message.sender.split('-')[1]
-          // console.log('sender---',message.sender,message.sender.split('-')[1])
-          senderElement.textContent =  `${message.sender}`
+           console.log('sender---',message.sender,message.sender.split('-')[1])
+          senderElement.textContent =  `${message.sender.split('-')[1]}`
           messageElement.textContent = `${message.text}`;
 
           messagesDiv.appendChild(senderElement);
@@ -269,12 +273,12 @@ sendButton.addEventListener("click", async () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
               text: messageText,
-              sender: currentUserId,
-              participants: [currentUserId, selectedUserId],
+              sender:`${currentUserId}-${currentUserName}`,
+              participants: [`${currentUserId}-${currentUserName}`, `${selectedUserId}-${selectedUserName}`],
           })
       });
       messageInput.value = "";
-      console.log('during send msg both id',currentUserId, selectedUserId)
+      console.log('during send msg both id',currentUserId, selectedUserId. currentUserName, selectedUserName)
       loadMessages(); // Refresh messages
   }
 });
