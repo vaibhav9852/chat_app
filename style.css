@@ -8,12 +8,14 @@ body {
     align-items: center;
     height: 100vh;
     width: 100vw;
+    background-color: rgba(212, 102, 102, 0.3);
 }
 
 #app-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
 }
 
 .auth-card {
@@ -59,7 +61,10 @@ button:hover {
     background: white;
     border-radius: 8px;
     width: 70vw;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
+    background: linear-gradient(to bottom right, #e69191, #c66b36); /* White to light cyan gradient */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
 }
 
 #sidebar {
@@ -70,18 +75,21 @@ button:hover {
     justify-content: flex-start;
     align-items: flex-start;
     flex-direction: column;
+    background-color: rgb(255, 245, 245);
 }
 
 h3{
     display: flex;
     justify-content: center;
     width: 100%;
+    font-size: x-large;
 }
 
 #user-list {
     list-style: none;
     padding: 0;
-    font-weight: bold;
+    font-weight:bold;
+    font-size: large;
     color: #303030;
 }
 
@@ -89,6 +97,8 @@ h3{
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 #messages {
@@ -108,7 +118,16 @@ textarea {
     margin-right: 0.8rem;
     padding: 0.8rem;
     border: 1px solid #ccc;
+    background-color: #c16e3e;
     border-radius: 0.2rem;
+    width: 100%;
+    border-radius: 0.5rem; 
+}
+
+#message{
+    color: #303030;
+    font-weight: bold;
+    background-color: rgb(240, 224, 224);
 }
 
 button {
@@ -116,7 +135,7 @@ button {
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 0.8rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
     width: 4rem;
@@ -143,24 +162,51 @@ button:hover {
  display: flex;
  justify-content: center;
  flex-direction: row;
+ font-size: x-large;
 }
 
 .sender-name{
- background-color: whitesmoke;
+    display: inline;
+ /* background-color:#c97070; */
  font-weight: 100;
- color: gray;
+ padding: 0.2rem;
+ border-radius: 0.3rem;
+ color: black
+
 }
 
 .user-message{
  margin-bottom: 0.8rem;
  margin-top: 0.3rem;
+ padding: 1rem;
+ border-radius: 1rem;
+background-color: whitesmoke;
 }
 
+/* .sender-name:nth-child(odd){
+ float: right;
+}
+.user-message:nth-child(odd){
+ float: right;
+ width: 50%;
+} */
+
 img{
-    height: 1.5rem;
+    height: 2rem;
     width: 2rem;
     border-radius: 50%;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
+}
+
+#last-24{
+    display: flex;
+    justify-content: center;
+    padding: 0.3rem;
+    width: 100%;
+     background-color: #d87f4c;
+    color: black;
+    font-weight: bold;
+    margin-block: 0.3rem;
 
 }
 

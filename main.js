@@ -1,5 +1,17 @@
 
 
+// Import necessary Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+// Your web app's Firebase configuration
+
+const URL_SIGNUP = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`
+const URL_SIGNIN = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`
+const URL_DB = `https://chat-6d1a8-default-rtdb.firebaseio.com`
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -12,6 +24,7 @@ let currentUserId = null;
 let selectedUserId = null;
 let currentUserName = null;
 let selectedUserName = null;
+let showLast24Hours = false;
 
 // Elements for signup and login
 const signupName = document.querySelector('#signup-name');
@@ -29,13 +42,15 @@ const sendButton = document.querySelector('#send');
 const userList = document.querySelector('#user-list');
 
 // Show login form
-document.querySelector('#show-login').onclick = () => {
+document.querySelector('#show-login').onclick = (event) => {
+  event.preventDefault()
     document.querySelector('#signup-form').style.display = 'none';
     document.querySelector('#login-form').style.display = 'block';
 };
 
 // Show signup form
-document.querySelector('#show-signup').onclick = () => {
+document.querySelector('#show-signup').onclick = (event) => {
+  event.preventDefault()
     document.querySelector('#signup-form').style.display = 'block';
     document.querySelector('#login-form').style.display = 'none';
 };
@@ -74,7 +89,8 @@ signupButton.onclick = async (event) => {
 };
 
 // Login with Firebase
-loginButton.onclick = async () => {
+loginButton.onclick = async (event) => {
+  event.preventDefault();
     let userEmail = loginUsername.value;
     let userPassword = loginUserPassword.value;
 
@@ -101,22 +117,6 @@ loginButton.onclick = async () => {
     }
 };
 
-// Load users
-// async function loadUsers() {
-//     const response = await fetch(`https://chat-6d1a8-default-rtdb.firebaseio.com/myuser.json`);
-//     const users = await response.json();
-//     userList.innerHTML = "";
-//     if (response.ok) {
-//         for (const userId in users) {
-//             if (users[userId].uid !== currentUserId) {
-//                 const li = document.createElement("li");
-//                 li.textContent = users[userId].uname;
-//                 li.onclick = () => selectUser(users[userId].uid);
-//                 userList.appendChild(li);
-//             }
-//         }
-//     }
-// }
 
 async function loadUsers(){
     try{
@@ -124,7 +124,8 @@ async function loadUsers(){
     const users = await response.json();
     userList.innerHTML = ""; 
      if(response.ok){
-    for (const userId in users) {
+    //for (const userId in users) 
+    Object.keys(users).map((userId) =>  {
         if (users[userId].uid != currentUserId) {
           
             const li = document.createElement("li");
@@ -135,16 +136,16 @@ async function loadUsers(){
             li.classList.add("user");
             li.appendChild(document.createTextNode(`${users[userId].uname}`));
            selectedUserName =  users[userId].uname;
-           console.log('loadUser selectedUserName--',selectedUserName)
+           console.log('loadUser selectedUserName',selectedUserName)
             li.onclick = () => selectUser(users[userId].uid); // update userId to users[userId].uid
             userList.appendChild(li);
-            console.log('if block not match',users[userId].uid != currentUserId)
-            console.log('if block not match',users[userId].uid , currentUserId)
+            // console.log('if block not match',users[userId].uid != currentUserId)
+            // console.log('if block not match',users[userId].uid , currentUserId)
         }else{
-          console.log('else block not match users[userId].uid , currentUserId, users[userId].uname',users[userId].uid , currentUserId, users[userId].uname)
+         // console.log('else block not match users[userId].uid , currentUserId, users[userId].uname',users[userId].uid , currentUserId, users[userId].uname)
           currentUserName = users[userId].uname;
         }
-    }
+    })
   }else{
     throw new Error('Error while load user')
   }
@@ -156,42 +157,59 @@ async function loadUsers(){
 // Select user to chat
 function selectUser(userId) {
     selectedUserId = userId;
-    console.log('selectUser selectedUserId',selectedUserId)
+   // console.log('selectUser selectedUserId',selectedUserId)
     messagesDiv.innerHTML = "";
     loadMessages();
 }
+
 
 // Load messages
 function loadMessages() {
     const messagesRef = collection(db, "messages");
     const q = query(messagesRef, orderBy("timestamp")); // orderBy("timestamp")
-
+     
     onSnapshot(q, (snapshot) => {
-        messagesDiv.innerHTML = "";
+      alert('load')
+        messagesDiv.innerHTML = ""; 
         snapshot.forEach((doc) => {
+        
+        //  console.log('d11',doc._document.data.value.mapValue.fields.timestamp.timestampValue)
+        
+          
+       //   console.log('TimeValue',doc._document.data.value.mapValue.fields.timestamp.timestampValu)
+
             const message = doc.data();
-            console.log('message',  message.participants.includes(`${currentUserId}-${currentUserName}`) ,
-            message.participants.includes(`${selectedUserId}-${selectedUserName}`) , `${currentUserId}-${currentUserName}` , `${selectedUserId}-${selectedUserName}`)
+            let messageTimeStamp = message.timestamp.seconds * 1000 // convert to mili second 
+            let isLast24Hours = Date.now() - messageTimeStamp <= 24 * 60 * 60 * 1000;
+             console.log('message----', message )
+             console.log('messageTimeStamp',messageTimeStamp, Date.now())
+             console.log('isLast24Hours',isLast24Hours)
+             console.log('showLast24Hours',showLast24Hours)
+             console.log('!showLast24Hours || isLast24Hours',!showLast24Hours , isLast24Hours , !showLast24Hours || isLast24Hours)
+    
             if (
                 message.participants.includes(`${currentUserId}-${currentUserName}`) &&
-                message.participants.includes(`${selectedUserId}-${selectedUserName}`)
-            ) {
+                message.participants.includes(`${selectedUserId}-${selectedUserName}`) &&  (!showLast24Hours || isLast24Hours)  
+            ){
                 const messageElement = document.createElement("div");
                 const senderElement = document.createElement("div");
+                messageElement.setAttribute('class','user-message')
+                senderElement.setAttribute('class','sender-name')
                 senderElement.textContent = message.sender.split('-')[1];
                 messageElement.textContent = message.text;
 
                 messagesDiv.appendChild(senderElement);
                 messagesDiv.appendChild(messageElement);
-            }
 
-            console.log('message in snap',message)
+                console.log('if block message---',message)
+            }
         });
-    });
+    }); 
 }
 
 // Send message
-sendButton.addEventListener("click", async () => {
+sendButton.addEventListener("click", async (event) => {
+  event.preventDefault();
     const messageText = messageInput.value;
     
     if (messageText && selectedUserId) {
@@ -202,10 +220,26 @@ sendButton.addEventListener("click", async () => {
             participants: [`${currentUserId}-${currentUserName}`, `${selectedUserId}-${selectedUserName}`],
             timestamp: new Date()
         });
-        messageInput.value = ""; // Clear the input field
+        messageInput.value = ""; // Clear the input field  
     }
-});
+}); 
 
+// last24hours
+
+document.querySelector('#last-24').onclick = async (event) =>{
+    event.preventDefault();
+    showLast24Hours = !showLast24Hours
+    //alert(showLast24Hours)
+    loadMessages();
+}
+
+
+
+
+
+
+
+ 
 
 
 
